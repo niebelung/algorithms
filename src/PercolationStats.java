@@ -2,7 +2,7 @@
 public class PercolationStats 
 {
 	
-	   public PercolationStats(int N, int T)     // perform T independent experiments on an N-by-N grid
+	   public PercolationStats(int N, int T)     // perform T independent experiments on an N-by-N grid...
 	   {
 		   
 	   }
