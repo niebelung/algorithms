@@ -1,3 +1,4 @@
+
 public class Percolation {
 
     public Percolation(int N)               // create N-by-N grid, with all sites blocked
@@ -19,18 +20,20 @@ public class Percolation {
 
     public void open(int i, int j)          // open site (row i, column j) if it is not open already
     {
-        Coords c = new Coords(i, j);
+        System.out.println("Entered open()");
+    	Coords c = new Coords(i, j);
         check(c);
 
         if(!grid_[c.i][c.j])
         {
             grid_[c.i][c.j] = true;
-            traverseNeighbors(c);
+            tryUnionWithNeighbors(c);
         }
     }
 
     public boolean isOpen(int i, int j)     // is site (row i, column j) open?
     {
+        System.out.println("Entered isOpen()");
         Coords c = new Coords(i, j);
         check(c);
         return grid_[c.i][c.j];
@@ -38,19 +41,20 @@ public class Percolation {
 
     public boolean isFull(int i, int j)     // is site (row i, column j) full?
     {
+        System.out.println("Entered isFull()");
         Coords c = new Coords(i, j);
         check(c);
 
         int elemIdx = convertCartesianToOneD(c);
 
-        for (int idx = 0; idx < grid_.length; ++i)
+        for (int idx = 0; idx < grid_.length; ++idx)
         {
         	if(!grid_[0][idx])
         	{
         		continue;
         	}
 
-        	int curIdx = convertCartesianToOneD(new Coords(0,idx));
+        	int curIdx = convertCartesianToOneD(new Coords(1,idx+1));
 
         	if(qu_.connected(elemIdx,curIdx))
         	{
@@ -69,16 +73,8 @@ public class Percolation {
 
     public boolean percolates()             // does the system percolate?
     {
+        //System.out.println("Entered percolates()");
         return percolates_;
-    }
-
-    public static void main(String[] args)   // test client (optional)
-	/**
-	 * @param args
-	 */
-    {
-		// TODO Auto-generated method stub
-
     }
 
    private boolean [][] grid_;
@@ -97,42 +93,138 @@ public class Percolation {
     		i = _i - 1;
     		j = _j - 1;
     	}
+    	public Coords getLeftNeighbor()
+    	{
+    		return new Coords((i + 0) + 1,(j - 1) + 1);
+    	}
+    	public Coords getRightNeighbor()
+    	{
+    		return new Coords((i + 0) + 1,(j + 1) + 1);
+    	}
+    	public Coords getTopNeighbor()
+    	{
+    		return new Coords((i - 1) + 1,(j + 0) + 1);
+    	}
+    	public Coords getBottomNeighbor()
+    	{
+    		return new Coords((i + 1) + 1,(j + 0) + 1);
+    	}
+
     }
 
 
     private int convertCartesianToOneD(Coords coords)
     {
-    	return grid_.length * (coords.i - 1) + coords.j - 1;
-    }
-
-    private void unionWith(Coords coords)
-    {
-        //TODO
+    	return grid_.length * coords.i + coords.j;
     }
 
     private boolean isElementExistent(Coords coords)
     {
-        if (coords.i < 0 ||
+    	if (coords.i < 0 ||
             coords.i > grid_.length - 1 ||
         	coords.j < 0 ||
-        	coords.j > grid_.length-1)
+        	coords.j > grid_.length - 1)
         {
+            //System.out.printf("NON-EXISTENT coords %d %d grid len %d\n",coords.i,coords.j,grid_.length - 1);
         	return false;
         }
+        //System.out.printf("EXISTENT coords %d %d grid len %d\n",coords.i,coords.j,grid_.length - 1);
+
         return true;
     }
 
-    private int traverseNeighbors(Coords coords)
+    private void tryUnionWithNeighbors(Coords me)
     {
-        //TODO
+        Coords left = me.getLeftNeighbor();
+        if(isElementExistent(left) )
+        {
+        	if(grid_[left.i][left.j])
+        	{
+        		qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(left));
+        	}
+        }
+        Coords right = me.getRightNeighbor();
+        if(isElementExistent(right))
+        {
+        	if(grid_[right.i][right.j])
+        	{
+        		qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(right));
+        	}
+        }
+        Coords top = me.getTopNeighbor();
+        if(isElementExistent(top))
+        {
+        	if(grid_[top.i][top.j])
+        	{
+        	    qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(top));
+        	}
+        }
+        Coords bottom = me.getBottomNeighbor();
+        if(isElementExistent(bottom) )
+        {
+        	if(grid_[bottom.i][bottom.j])
+        	{
+        	    qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(bottom));
+        	}
+        }
     }
 
     private void check(Coords coords)
     {
     	if (!isElementExistent(coords))
 		{
-        	throw new IllegalArgumentException();
+        	throw new java.lang.IndexOutOfBoundsException();
 		}
+    }
+
+    public static void main(String[] args)   // test client (optional)
+	/**
+	 * @param args
+	 */
+    {
+        //TEST Invalid constructor arg
+        try
+        {
+    	Percolation p1 = new Percolation(-1);
+        }
+        catch (IllegalArgumentException e)
+        {
+    	System.out.printf("Caught %s when passing -1 to Percolation() in test 1\n",
+    			          e.getMessage());
+        }
+
+        //TEST Construction 2 by 2 grid
+
+        try
+        {
+    	Percolation p2 = new Percolation(2);
+     	p2.open(1, 1);
+    	System.out.printf("opened (1,1) isOpen(1,1)=%b isFull(1,1)=%b percolates()=%b\n",
+		          p2.isOpen(1, 1), p2.isFull(1,1), p2.percolates());
+       	p2.open(2, 2);
+    	System.out.printf("opened (2,2) isOpen(2,2)=%b isFull(2,2)=%b percolates()=%b\n",
+     			          p2.isOpen(2,2), p2.isFull(2,2), p2.percolates());
+     	p2.open(2, 1);
+    	System.out.printf("opened (2,1) isOpen(2,1)=%b isFull(2,1)=%b percolates()=%b\n",
+    			          p2.isOpen(2,1), p2.isFull(2,1), p2.percolates());
+
+        }
+        catch (IllegalArgumentException e)
+        {
+    	System.out.printf("Caught %s when passing 2 to Percolation() in test 2\n",
+    			          e.getMessage());
+    	//throw(e);
+        }
+        catch (java.lang.IndexOutOfBoundsException x)
+        {
+        	System.out.printf("%s\n","Caught "+ x +" when running test 2");
+        }
+
+
+
+
+
+
     }
 
 }
