@@ -15,12 +15,11 @@ public class Percolation {
     		}
     	}
 
-    	qu_ = new QuickUnionUF(N*N);
+    	qu_ = new WeightedQuickUnionUF(N*N);
     }
 
     public void open(int i, int j)          // open site (row i, column j) if it is not open already
     {
-        System.out.println("Entered open()");
     	Coords c = new Coords(i, j);
         check(c);
 
@@ -28,12 +27,13 @@ public class Percolation {
         {
             grid_[c.i][c.j] = true;
             tryUnionWithNeighbors(c);
+            //Should be invoked to raised percolates_ flag
+            isFull(i,j);
         }
     }
 
     public boolean isOpen(int i, int j)     // is site (row i, column j) open?
     {
-        System.out.println("Entered isOpen()");
         Coords c = new Coords(i, j);
         check(c);
         return grid_[c.i][c.j];
@@ -41,12 +41,17 @@ public class Percolation {
 
     public boolean isFull(int i, int j)     // is site (row i, column j) full?
     {
-        System.out.println("Entered isFull()");
         Coords c = new Coords(i, j);
         check(c);
 
+        if(!grid_[c.i][c.j])
+        {
+        	return false;
+        }
+
         int elemIdx = convertCartesianToOneD(c);
 
+        //Traverse top row
         for (int idx = 0; idx < grid_.length; ++idx)
         {
         	if(!grid_[0][idx])
@@ -73,13 +78,20 @@ public class Percolation {
 
     public boolean percolates()             // does the system percolate?
     {
-        //System.out.println("Entered percolates()");
-        return percolates_;
+        //Traverse bottom row
+        for (int idx = 0; idx < grid_.length; ++idx)
+        {
+        	if(isFull(grid_.length, idx+1))
+        	{
+        		return true;
+        	}
+        }
+        return false;
     }
 
    private boolean [][] grid_;
    private boolean percolates_ = false;
-    private QuickUnionUF qu_;
+    private WeightedQuickUnionUF qu_;
 
     //Class representing zero-based cartesian coords
     // Constructed by one-based coords
@@ -125,10 +137,8 @@ public class Percolation {
         	coords.j < 0 ||
         	coords.j > grid_.length - 1)
         {
-            //System.out.printf("NON-EXISTENT coords %d %d grid len %d\n",coords.i,coords.j,grid_.length - 1);
         	return false;
         }
-        //System.out.printf("EXISTENT coords %d %d grid len %d\n",coords.i,coords.j,grid_.length - 1);
 
         return true;
     }
@@ -213,7 +223,6 @@ public class Percolation {
         {
     	System.out.printf("Caught %s when passing 2 to Percolation() in test 2\n",
     			          e.getMessage());
-    	//throw(e);
         }
         catch (java.lang.IndexOutOfBoundsException x)
         {
