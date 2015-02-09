@@ -17,17 +17,8 @@ public class Percolation {
 
     	totalN = N*N;
 
-    	qu_ = new WeightedQuickUnionUF(N*N + 2);
+    	qu_ = new WeightedQuickUnionUF(totalN + 2);
 
-    	for(int i = 0; i < N; ++i)
-    	{
-    		//TOP
-    		qu_.union(convertCartesianToOneD(new Coords(1,i+1)),
-   	                  totalN);
-    		//BOTTOM
-    		qu_.union(convertCartesianToOneD(new Coords(N,i+1)),
-   	                  totalN + 1);
-    	}
     }
 
     public void open(int i, int j)          // open site (row i, column j) if it is not open already
@@ -38,8 +29,20 @@ public class Percolation {
         if(grid_[c.i][c.j] == 0)
         {
             grid_[c.i][c.j] = 1;
+            if(i == 1)
+            {
+            	//TOP
+        		qu_.union(convertCartesianToOneD(new Coords(1,j)),
+       	                  totalN);
+            }
+            if(i == grid_.length)
+            {
+        		//BOTTOM
+        		qu_.union(convertCartesianToOneD(new Coords(grid_.length,j)),
+       	                  totalN + 1);
+            }
+
             tryUnionWithNeighbors(c);
-            //Should be invoked to raised percolates_ flag
         }
     }
 
@@ -60,13 +63,10 @@ public class Percolation {
         	return false;
         }
 
-        int elemIdx = convertCartesianToOneD(c);
-
-        if(qu_.connected(elemIdx, totalN))
+        if(qu_.connected(convertCartesianToOneD(c), totalN))
         {
         	return true;
         }
-
 
         return false;
 
