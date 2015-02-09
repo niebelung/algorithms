@@ -5,17 +5,29 @@ public class Percolation {
     {
     	if(N <= 0) throw new IllegalArgumentException("Grid size may not be less than zero!");
 
-    	grid_ = new boolean [N][N];
+    	grid_ = new byte [N][N];
 
-    	for(boolean row [] : grid_)
+    	for(byte row [] : grid_)
     	{
-    		for(boolean item : row)
+    		for(byte item : row)
     		{
-    			item = false;
+    			item = 0;
     		}
     	}
 
-    	qu_ = new WeightedQuickUnionUF(N*N);
+    	totalN = N*N;
+
+    	qu_ = new WeightedQuickUnionUF(N*N + 2);
+
+    	for(int i = 0; i < N; ++i)
+    	{
+    		//TOP
+    		qu_.union(convertCartesianToOneD(new Coords(1,i+1)),
+   	                  totalN);
+    		//BOTTOM
+    		qu_.union(convertCartesianToOneD(new Coords(N,i+1)),
+   	                  totalN + 1);
+    	}
     }
 
     public void open(int i, int j)          // open site (row i, column j) if it is not open already
@@ -23,12 +35,11 @@ public class Percolation {
     	Coords c = new Coords(i, j);
         check(c);
 
-        if(!grid_[c.i][c.j])
+        if(grid_[c.i][c.j] == 0)
         {
-            grid_[c.i][c.j] = true;
+            grid_[c.i][c.j] = 1;
             tryUnionWithNeighbors(c);
             //Should be invoked to raised percolates_ flag
-            isFull(i,j);
         }
     }
 
@@ -36,7 +47,7 @@ public class Percolation {
     {
         Coords c = new Coords(i, j);
         check(c);
-        return grid_[c.i][c.j];
+        return grid_[c.i][c.j] != 0;
     }
 
     public boolean isFull(int i, int j)     // is site (row i, column j) full?
@@ -44,54 +55,35 @@ public class Percolation {
         Coords c = new Coords(i, j);
         check(c);
 
-        if(!grid_[c.i][c.j])
+        if(grid_[c.i][c.j] == 0)
         {
         	return false;
         }
 
         int elemIdx = convertCartesianToOneD(c);
 
-        //Traverse top row
-        for (int idx = 0; idx < grid_.length; ++idx)
+        if(qu_.connected(elemIdx, totalN))
         {
-        	if(!grid_[0][idx])
-        	{
-        		continue;
-        	}
-
-        	int curIdx = convertCartesianToOneD(new Coords(1,idx+1));
-
-        	if(qu_.connected(elemIdx,curIdx))
-        	{
-        		//If in the bottom row
-        		if(c.i == grid_.length - 1)
-        		{
-        			// We just have discovered that the system percolates
-        			percolates_ = true;
-        		}
-        		return true;
-        	}
+        	return true;
         }
 
+
         return false;
+
     }
 
     public boolean percolates()             // does the system percolate?
     {
-        //Traverse bottom row
-        for (int idx = 0; idx < grid_.length; ++idx)
-        {
-        	if(isFull(grid_.length, idx+1))
-        	{
-        		return true;
-        	}
-        }
-        return false;
+    	if (qu_.connected(totalN, totalN + 1))
+    	{
+    		return true;
+    	}
+    	return false;
     }
 
-   private boolean [][] grid_;
-   private boolean percolates_ = false;
-    private WeightedQuickUnionUF qu_;
+   private byte [][] grid_;
+   private WeightedQuickUnionUF qu_;
+   private int totalN = 0;
 
     //Class representing zero-based cartesian coords
     // Constructed by one-based coords
@@ -148,7 +140,7 @@ public class Percolation {
         Coords left = me.getLeftNeighbor();
         if(isElementExistent(left) )
         {
-        	if(grid_[left.i][left.j])
+        	if(grid_[left.i][left.j] != 0)
         	{
         		qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(left));
         	}
@@ -156,7 +148,7 @@ public class Percolation {
         Coords right = me.getRightNeighbor();
         if(isElementExistent(right))
         {
-        	if(grid_[right.i][right.j])
+        	if(grid_[right.i][right.j] != 0)
         	{
         		qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(right));
         	}
@@ -164,7 +156,7 @@ public class Percolation {
         Coords top = me.getTopNeighbor();
         if(isElementExistent(top))
         {
-        	if(grid_[top.i][top.j])
+        	if(grid_[top.i][top.j] != 0)
         	{
         	    qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(top));
         	}
@@ -172,7 +164,7 @@ public class Percolation {
         Coords bottom = me.getBottomNeighbor();
         if(isElementExistent(bottom) )
         {
-        	if(grid_[bottom.i][bottom.j])
+        	if(grid_[bottom.i][bottom.j] != 0)
         	{
         	    qu_.union(convertCartesianToOneD(me), convertCartesianToOneD(bottom));
         	}

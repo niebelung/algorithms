@@ -5,6 +5,11 @@ public class PercolationStats
 
    public PercolationStats(int N, int T)     // perform T independent experiments on an N-by-N grid...
    {
+       if (T <= 0)
+	   {throw new IllegalArgumentException("Experiment series should be larger than zero!");}
+       if (N <= 0)
+	   {throw new IllegalArgumentException("Grid size should be larger than zero!");}
+
        T_ = T;
        thresholdSeries_ = new double[T];
 
@@ -59,7 +64,9 @@ public class PercolationStats
        int T = Integer.parseInt(args[1]);
 
        if (T <= 0)
-    	   {throw new IllegalArgumentException("Experiment series should be larger than zero!");}
+	   {throw new IllegalArgumentException("Experiment series should be larger than zero!");}
+       if (N <= 0)
+	   {throw new IllegalArgumentException("Grid size should be larger than zero!");}
 
        Stopwatch sw = new Stopwatch();
 
