@@ -32,13 +32,13 @@ public class Percolation {
             if(i == 1)
             {
             	//TOP
-        		qu_.union(convertCartesianToOneD(new Coords(1,j)),
+        		qu_.union(convertCartesianToOneD(c),
        	                  totalN);
             }
             if(i == grid_.length)
             {
         		//BOTTOM
-        		qu_.union(convertCartesianToOneD(new Coords(grid_.length,j)),
+        		qu_.union(convertCartesianToOneD(c),
        	                  totalN + 1);
             }
 
@@ -74,11 +74,7 @@ public class Percolation {
 
     public boolean percolates()             // does the system percolate?
     {
-    	if (qu_.connected(totalN, totalN + 1))
-    	{
-    		return true;
-    	}
-    	return false;
+    	return qu_.connected(totalN, totalN + 1);
     }
 
    private byte [][] grid_;
