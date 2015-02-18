@@ -4,72 +4,74 @@ public class Deque<Item> implements Iterable<Item>
 {
 	public Deque()                           // construct an empty deque
 	{
-        _last= null;
-        _first = null;
+        last_= null;
+        first_ = null;
 	}
 	public boolean isEmpty()                 // is the deque empty?
 	{
-		return _first == null && _last == null;
+		return first_ == null && last_ == null;
 
 	}
 	public int size()                        // return the number of items on the deque
-	{}
+	{
+		return cnt_;
+	}
 	public void addFirst(Item item)          // add the item to the front
 	{
 		if(item == null) throw new java.lang.NullPointerException("attempted to add null item");
 
-		Node<Item> it = new Node<Item>();
+		Node it = new Node();
 		if(isEmpty())
 		{
 			it.next = null;
 			it.prev = null;
-			_first = it;
-			_last = it;
+			first_ = it;
+			last_ = it;
 		}
 		else
 		{
-			Node<Item> oldfirst = _first;
-			_first = it;
-			_first.data = item;
-			_first.next = oldfirst;
-			oldfirst.prev = _first;
-			_first.prev  = null;
+			Node oldfirst = first_;
+			first_ = it;
+			first_.data = item;
+			first_.next = oldfirst;
+			oldfirst.prev = first_;
+			first_.prev  = null;
 		}
-		_cnt++;
+		cnt_++;
 	}
 
 	public void addLast(Item item)           // add the item to the end
 	{
 		if(item == null) throw new java.lang.NullPointerException("attempted to add null item");
 
-		Node<Item> it = new Node<Item>();
+		Node it = new Node();
 
 		if(isEmpty())
 		{
 			it.next = null;
 			it.prev = null;
-			_first = it;
-			_last = it;
+			first_ = it;
+			last_ = it;
 		}
 		else
 		{
-			Node<Item> oldlast = _last;
-			_last = it;
-			_last.data = item;
-			_last.next = null;
-			oldlast.next  = _last;
-			_last.prev = oldlast;
+			Node oldlast = last_;
+			last_ = it;
+			last_.data = item;
+			last_.next = null;
+			oldlast.next  = last_;
+			last_.prev = oldlast;
 		}
-		_cnt++;
+		cnt_++;
     }
 
 	public Item removeFirst()                // remove and return the item from the front
 	{
 		if(isEmpty()) throw new java.util.NoSuchElementException("attempted to remove from an empty queue");
 
-        Item item = _first.data;
-        _first = _first.next;
-		_cnt--;
+        Item item = first_.data;
+        first_ = first_.next;
+		cnt_--;
         return item;
 	}
 
@@ -77,19 +79,19 @@ public class Deque<Item> implements Iterable<Item>
 	{
 		if(isEmpty()) throw new java.util.NoSuchElementException("attempted to remove from an empty queue");
 
-        Item item = _last.data;
-        _last = _last.prev;
-		_cnt--;
+        Item item = last_.data;
+        last_ = last_.prev;
+		cnt_--;
         return item;
 
 	}
 
 
-	private class Node<Item>
+	private class Node
 	{
 		Item data;
-		Node<Item> next;
-		Node<Item> prev;
+		Node next;
+		Node prev;
 		Node()
 		{
 			data = null;
@@ -98,38 +100,39 @@ public class Deque<Item> implements Iterable<Item>
 		}
 	}
 
-	private Node<Item> _first;
-	private Node<Item> _last;
-	private int _cnt = 0;
+	private Node first_;
+	private Node last_;
+	private int cnt_ = 0;
 
-	public class DequeIterator<Item> implements Iterator<Item>
+	private class DequeIterator implements Iterator<Item>
 	{
-		private Deque<Item> _deque;
-		private Node<Item> _current = null;
+		private Node current_ = Deque.this.first_;
 
-		public DequeIterator(Deque<Item> d) {
-			_deque = d;
-			_current = _deque._first;
-		}
 		@Override
-		public boolean hasNext() {
-			return _deque.
+		public boolean hasNext()
+		{
+			return current_.next != null;
+		}
 
-		}
 		@Override
-		public Item next() {
-			// TODO Auto-generated method stub
-			return null;
+		public Item next()
+		{
+			current_ = current_.next;
+			return current_.data;
 		}
+
 		@Override
-		public void remove() {
+		public void remove()
+		{
 			throw new UnsupportedOperationException("remove() method unsupported");
 		}
 	}
 
 	@Override
 	public Iterator<Item> iterator()         // return an iterator over items in order from front to end
-	{}
+	{
+		return new DequeIterator();
+	}
 
 	public static void main(String[] args)   // unit testing
 {}
