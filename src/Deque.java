@@ -39,8 +39,6 @@ public class Deque<Item> implements Iterable<Item>
 			first_.prev  = null;
 		}
 		cnt_++;
-		//TEST
-		System.out.printf("first %d last %d\n", first_.data,last_.data);
 	}
 
 	public void addLast(Item item)           // add the item to the end
@@ -67,8 +65,6 @@ public class Deque<Item> implements Iterable<Item>
 			last_.prev = oldlast;
 		}
 		cnt_++;
-		//TEST
-		System.out.printf("first %d last %d\n", first_.data,last_.data);
     }
 
 	public Item removeFirst()                // remove and return the item from the front
@@ -165,15 +161,15 @@ public class Deque<Item> implements Iterable<Item>
 
 	// unit testing
 	public static void main(String[] args){
-		System.out.println("TEST#1");
+		System.out.println("TEST#1 enqueueing");
 		int [] testArray1 = {1,2,3,4,5,6};
 
 		Deque<Integer> deque = new Deque<Integer>();
 
 		int cnt = 0;
-		for(int item : testArray1)
+		for (int item : testArray1)
 		{
-			if((cnt++ % 2) == 0)
+			if ((cnt++ % 2) == 0)
 			{
 				System.out.printf("deque.addFirst(%d)\n",item);
 				deque.addFirst(item);
@@ -185,6 +181,7 @@ public class Deque<Item> implements Iterable<Item>
 			}
 		}
 
+		System.out.println("TEST#2 iterating");
 		Iterator<Integer> it1 = deque.iterator();
 		Iterator<Integer> it2 = deque.iterator();
 		while(it1.hasNext() && it2.hasNext())
@@ -193,7 +190,8 @@ public class Deque<Item> implements Iterable<Item>
 			System.out.printf("it2.next() = %d\n",it2.next());
 		}
 
-		while(!deque.isEmpty())
+		System.out.println("TEST#3 dequeueing");
+		while (!deque.isEmpty())
 		{
 			if((cnt++ % 2) == 0)
 			{
@@ -207,6 +205,8 @@ public class Deque<Item> implements Iterable<Item>
 		System.out.printf(
 				"deque.iterator().hasNext() -> %b,deque.size() -> %d, deque.isEmpty() -> %b\n",
 				deque.iterator().hasNext(), deque.size(), deque.isEmpty());
+
+		System.out.println("TEST#3 exceptions");
 		try{
 			//deque.removeFirst();
 			//deque.removeLast();
