@@ -121,29 +121,47 @@ public class Deque<Item> implements Iterable<Item>
 	private class DequeIterator implements Iterator<Item>
 	{
 		private Node current_;
+		private boolean isFirst = true;
 
 		public DequeIterator()
 		{
-			current_ = new Node();
-			current_.next = first_;
+			//current_.next = first_;
+			//current_ = first_;
 		}
 
 		@Override
 		public boolean hasNext()
 		{
-			return current_.next != null;
+			if(isFirst)
+			{
+				return first_ != null;
+			}
+			else
+			{
+				return current_.next != null;
+			}
 		}
 
 		@Override
 		public Item next()
 		{
-			if(current_.next == null){
+			if(!isFirst && current_.next == null ||
+					isFirst && first_ == null){
 				throw new java.util.NoSuchElementException(
 						"attempted to access inexistent element via iterator"
 						);
 			}
-			current_ = current_.next;
-			return current_.data;
+			if(isFirst)
+			{
+				isFirst = false;
+				current_ = first_;
+				return current_.data;
+			}
+			else
+			{
+				current_ = current_.next;
+				return current_.data;
+			}
 		}
 
 		@Override
