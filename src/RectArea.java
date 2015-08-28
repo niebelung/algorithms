@@ -225,6 +225,9 @@ public class RectArea {
     }
 
     public static void main(String[] args) {
+    	if(args.length != 2) {
+    		throw new IllegalArgumentException("Invalid number of arguments : 2 needed");
+    	}
     	String inputFile = args[0];
     	String outputFile = args[1];
     	try {
