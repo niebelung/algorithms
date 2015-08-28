@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.nio.charset.*;
+import java.lang.Runtime;
 
 public class RectArea {
 	public static final int MAX_COORD_VAL = 10000;
@@ -52,9 +53,11 @@ public class RectArea {
         }
 
         public Interval intersection(Interval other) {
-        	if(this.contains(other.hi())) {
-        		return new Interval(this.lo(),other.hi());
-        	} else if(this.contains(other.lo())){
+        	if(this.contains(other.hi()) && this.contains(other.lo())) {
+        			return new Interval(other.lo(),other.hi());
+        	} else if (this.contains(other.hi()) && !this.contains(other.lo())) {
+        			return new Interval(this.lo(),other.hi());
+        	} else if(!this.contains(other.hi()) && this.contains(other.lo())){
         		return new Interval(other.lo(),this.hi());
         	} else {
         		return new Interval();
@@ -138,6 +141,19 @@ public class RectArea {
     	}
     }
 
+    private class RectangleYComparator implements Comparator<Rectangle> {
+    	@Override
+    	public int compare(Rectangle rLeft, Rectangle rRight) {
+    		if(rLeft.intervalY().lo() > rRight.intervalY().lo()) {
+    			return 1;
+    		} else if (rLeft.intervalY().lo() < rRight.intervalY().lo()){
+    			return -1;
+    		} else {
+    			return 0;
+    		}
+    	}
+    }
+
     private class RectangleEdge {
     	private Integer x_;
     	private Rectangle r_;
@@ -197,6 +213,7 @@ public class RectArea {
 
     public int calc() {
         Collections.sort(rects_, new RectangleXComparator());
+        Collections.sort(rects_, new RectangleYComparator());
         for(Rectangle rect : rects_) {
         	eventsQueue_.add(new RectangleEdge(rect.intervalX().lo(), rect));
         	eventsQueue_.add(new RectangleEdge(rect.intervalX().hi(), rect));
@@ -250,6 +267,19 @@ public class RectArea {
 	            	   Integer.parseInt(coords[2]),
 	            	   Integer.parseInt(coords[3]));
 	        }
+
+//	        int i,j;
+//	        for(i =0 ;i < 3;i++) {
+//	        	for(j=0;j<3;j++) {
+//	        		ra.add(i,j,i+2,j+2);
+//	        	}
+//	        }
+
+	        Runtime rt = Runtime.getRuntime();
+
+	        System.out.printf("Memory usage [bytes] : used %d free %d total %d\n",
+	        		          rt.totalMemory() - rt.freeMemory(),rt.freeMemory(),rt.totalMemory());
+
 	        writer.print(String.valueOf(ra.calc()) + "\n");
 	        writer.close();
     	} catch(Exception e) {
