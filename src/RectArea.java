@@ -23,8 +23,9 @@ public class RectArea {
 		eventsQueue_ = new ArrayList<RectangleEdge>();
 		rects_ = new ArrayList<Rectangle>();
 		activeRects_ = new ArrayList<Rectangle>();
+		activeIntervals_ = new ArrayList<Interval>();
 		area_ = 0;
-        isInWork = false;
+        isInWork_ = false;
         lastX_ = 0;
 	}
 
@@ -33,10 +34,12 @@ public class RectArea {
             lo_ = 0;
             hi_ = 0;
         }
+
         public Interval(Interval other) {
             lo_ = other.lo();
             hi_ = other.hi();
         }
+
 		public Interval(int lo, int hi) {
         	lo_ = Math.min(lo, hi);
         	hi_ = Math.max(lo,hi);
@@ -61,6 +64,7 @@ public class RectArea {
                 lo_ = lo;
             }
         }
+
         public void setHi(int hi) {
             if (hi < lo_) {
                 hi_ = lo_;
@@ -75,9 +79,9 @@ public class RectArea {
         }
 
         public boolean intersects(Interval other) {
-            if ((this.contains(other.hi()) && this.contains(other.lo())) &&
-                (this.contains(other.hi()) && !this.contains(other.lo())) &&
-                (!this.contains(other.hi()) && this.contains(other.lo())) &&
+            if ((this.contains(other.hi()) && this.contains(other.lo())) ||
+                (this.contains(other.hi()) && !this.contains(other.lo())) ||
+                (!this.contains(other.hi()) && this.contains(other.lo())) ||
                 (other.contains(this.hi()) && other.contains(this.lo()))) {
                 return true;
             } else {
@@ -218,15 +222,10 @@ public class RectArea {
     }
 
     private ArrayList<RectangleEdge> eventsQueue_;
-
     private ArrayList<Rectangle> rects_;
-
     private ArrayList<Rectangle> activeRects_;
-
     private ArrayList<Interval> activeIntervals_;
-
     private Interval currentInterval_;
-
     private int area_;
     private int lastX_;
     private boolean isInWork_;
@@ -263,41 +262,42 @@ public class RectArea {
         while(!eventsQueue_.isEmpty()) {
         	RectangleEdge e = eventsQueue_.remove(0);
         	Integer x = e.x();
+            if(!isInWork_) {
+                isInWork_ = true;
+                lastX_ = x;
+            } else {
+                if(x != lastX_) {
+                    Collections.sort(activeRects_, new RectangleYComparator());
+                    currentInterval_ = null;
+                    activeIntervals_.clear();
+                    for (Rectangle item : activeRects_) {
+                        if (currentInterval_ == null) {
+                            currentInterval_ = new Interval(item.intervalY().lo(), item.intervalY().hi());
+                        } else {
+                            if(currentInterval_.intersects(item.intervalY())) {
+                                currentInterval_.setLo(Math.min(currentInterval_.lo(),item.intervalY().lo()));
+                                currentInterval_.setHi(Math.max(currentInterval_.hi(),item.intervalY().hi()));
+                            } else {
+                                activeIntervals_.add(currentInterval_);
+                                currentInterval_ = item.intervalY();
+                            }
+                        }
+                    }
+                    activeIntervals_.add(currentInterval_);
+                    for (Interval item : activeIntervals_) {
+                        area_ += item.len() * (x - lastX_);
+                    }
+                    lastX_ = x;
+                }
+            }
+            
         	Rectangle r = e.rect();
         	if (x == r.intervalX().lo()) {
         		activeRects_.add(r);
         	} else {
         		activeRects_.remove(r);
         	}
-
-            if(!isInWork_) {
-                isInWork_ = true;
-            } else {
-                for (Interval item : activeIntervals_) {
-                    area_ += item.len() * (x - lastX_);
-                }
-                lastX_ = x;
-            }
-
-            Collections.sort(activeRects_, new RectangleYComparator{});
-            currentInterval_ = null;
-            activeIntervals_.clear();
-            for (Rectangle item : activeRects_) {
-                if (currentInterval_ == null) {
-                    currentInterval_ = new Interval(item.intervalY().lo(), item.intervalY().hi());
-                } else {
-                    if(currentInterval_.intersects(item.intervalY())) {
-                        currentInterval_.setLo(Math.min(currentInterval_.lo(),item.intervalY().lo()));
-                        currentInterval_.setHi(Math.max(currentInterval_.hi(),item.intervalY().hi()));
-                    } else {
-                        activeIntervals_.add(currentInterval_);
-                        currentInterval_ = item.intervalY();
-                    }
-                }
-            }
-
         }
-
     	return area_;
     }
 
@@ -328,13 +328,6 @@ public class RectArea {
 	            	   Integer.parseInt(coords[3]));
 	        }
 
-//	        int i,j;
-//	        for(i =0 ;i < 3;i++) {
-//	        	for(j=0;j<3;j++) {
-//	        		ra.add(i,j,i+2,j+2);
-//	        	}
-//	        }
-
 	        Runtime rt = Runtime.getRuntime();
 
 	        System.out.printf("Memory usage [bytes] : used %d free %d total %d\n",
@@ -345,8 +338,5 @@ public class RectArea {
     	} catch(Exception e) {
     		System.out.printf("%s\n",e.toString());
     	}
-
-
     }
-
 }
