@@ -23,14 +23,19 @@ public class RectArea {
 		eventsQueue_ = new ArrayList<RectangleEdge>();
 		rects_ = new ArrayList<Rectangle>();
 		activeRects_ = new ArrayList<Rectangle>();
-		rectArea_ = 0;
-		intersectionsArea_ = 0;
+		area_ = 0;
+        isInWork = false;
+        lastX_ = 0;
 	}
 
 	private class Interval {
         public Interval() {
-        	lo_ = 0;
-        	hi_ = 0;
+            lo_ = 0;
+            hi_ = 0;
+        }
+        public Interval(Interval other) {
+            lo_ = other.lo();
+            hi_ = other.hi();
         }
 		public Interval(int lo, int hi) {
         	lo_ = Math.min(lo, hi);
@@ -48,18 +53,48 @@ public class RectArea {
         	return hi_;
         }
 
+        public void setLo(int lo) {
+            if (lo > hi_) {
+                lo_ = hi_;
+                hi_ = lo;
+            } else {
+                lo_ = lo;
+            }
+        }
+        public void setHi(int hi) {
+            if (hi < lo_) {
+                hi_ = lo_;
+                lo_ = hi;
+            } else {
+                hi_ = hi;
+            }
+        }
+
         public int len() {
         	return hi_ - lo_;
         }
 
+        public boolean intersects(Interval other) {
+            if ((this.contains(other.hi()) && this.contains(other.lo())) &&
+                (this.contains(other.hi()) && !this.contains(other.lo())) &&
+                (!this.contains(other.hi()) && this.contains(other.lo())) &&
+                (other.contains(this.hi()) && other.contains(this.lo()))) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         public Interval intersection(Interval other) {
-        	if(this.contains(other.hi()) && this.contains(other.lo())) {
-        			return new Interval(other.lo(),other.hi());
-        	} else if (this.contains(other.hi()) && !this.contains(other.lo())) {
-        			return new Interval(this.lo(),other.hi());
-        	} else if(!this.contains(other.hi()) && this.contains(other.lo())){
-        		return new Interval(other.lo(),this.hi());
-        	} else {
+            if(this.contains(other.hi()) && this.contains(other.lo())) {
+                    return new Interval(other.lo(),other.hi());
+            } else if (this.contains(other.hi()) && !this.contains(other.lo())) {
+                    return new Interval(this.lo(),other.hi());
+            } else if(!this.contains(other.hi()) && this.contains(other.lo())){
+                return new Interval(other.lo(),this.hi());
+            } else if(other.contains(this.hi()) && other.contains(this.lo())) {
+                    return new Interval(this.lo(),this.hi());
+            } else {
         		return new Interval();
         	}
         }
@@ -188,9 +223,14 @@ public class RectArea {
 
     private ArrayList<Rectangle> activeRects_;
 
-    private int rectArea_;
-    private int intersectionsArea_;
+    private ArrayList<Interval> activeIntervals_;
 
+    private Interval currentInterval_;
+
+    private int area_;
+    private int lastX_;
+    private boolean isInWork_;
+    
     public void add(int xLo,int yLo, int xHi, int yHi) {
     	if (Math.abs(xLo) > MAX_COORD_VAL ||
     			Math.abs(yLo) > MAX_COORD_VAL ||
@@ -227,18 +267,38 @@ public class RectArea {
         	if (x == r.intervalX().lo()) {
         		activeRects_.add(r);
         	} else {
-        		for (Rectangle item : activeRects_) {
-        			if (item == r) {
-        				continue;
-        			}
-        			intersectionsArea_ += r.intersection(item).area();
-        		}
-    			rectArea_ += r.area();
         		activeRects_.remove(r);
         	}
+
+            if(!isInWork_) {
+                isInWork_ = true;
+            } else {
+                for (Interval item : activeIntervals_) {
+                    area_ += item.len() * (x - lastX_);
+                }
+                lastX_ = x;
+            }
+
+            Collections.sort(activeRects_, new RectangleYComparator{});
+            currentInterval_ = null;
+            activeIntervals_.clear();
+            for (Rectangle item : activeRects_) {
+                if (currentInterval_ == null) {
+                    currentInterval_ = new Interval(item.intervalY().lo(), item.intervalY().hi());
+                } else {
+                    if(currentInterval_.intersects(item.intervalY())) {
+                        currentInterval_.setLo(Math.min(currentInterval_.lo(),item.intervalY().lo()));
+                        currentInterval_.setHi(Math.max(currentInterval_.hi(),item.intervalY().hi()));
+                    } else {
+                        activeIntervals_.add(currentInterval_);
+                        currentInterval_ = item.intervalY();
+                    }
+                }
+            }
+
         }
 
-    	return rectArea_ - intersectionsArea_;
+    	return area_;
     }
 
     public static void main(String[] args) {
